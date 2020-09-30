@@ -6,23 +6,25 @@ function plot(id){
         //calls arrow function for each array element-grabbing the first
         //array element for each sample. 
         var otu_labels = data.samples.map(d => d.otu_labels[0]);
+        //check
+        console.log(otu_labels)
         var otu_ids = data.samples.map(d => d.otu_ids[0]);
+        console.log(otu_ids)
         //sample values filtered by id--make a new array, contains
         //only elements that match the samples.id part of the json,
         //changes them to a string.
         var samples =data.samples.filter(s => s.id.toString() === id)[0];
-
         console.log(samples);
         //get top 10 sample values, slice up to 10th value and then reverse
         //to go from top down. 
         var sample_values = samples.sample_values.slice(0,10).reverse()
-        
+        console.log(sample_values)
         //get top 10 otu ids in same method
         var top_OTU = (samples.otu_ids.slice(0,10)).reverse();
         //get top 10 otu labels for hover over functionality
         var hover = samples.otu_labels.slice(0,10);
 
-        //for i=0 to length of metadata, grab the id key 
+        //set up trace and layout for bar graph
         var trace1 = {
             type: "bar",
             name: "test",
@@ -41,7 +43,7 @@ function plot(id){
         };
 
         var data = [trace1];
-        //bar chart setup
+        //bar chart plotly call-actually build it
         Plotly.newPlot("bar", data, layout);
 
         //set up bubble chart
@@ -64,16 +66,17 @@ function plot(id){
         };
 
         var data1 = [trace1];
-
+        //call bubble chart
         Plotly.newPlot("bubble", data1, layout_b);
     });
 };
 
-getPlot('1545');
+
 //info fxn to repopulate demographic panel each time dropdown is. 
-function getInfo(id){
+function demInfo(id){
     //re-read json
     d3.json("../../samples.json").then((data)=> {
+        //get just metadata, make it its own variable to work with. 
         var metadata = data.metadata;
         console.log(metadata)
         //filter down metadata by id 
@@ -83,6 +86,9 @@ function getInfo(id){
         //clear out data each time event changes
         demographicInfo.html("");
         //get data to populate table
+        //object.entries gets the keys & values from the metadata
+        //and populates the table w/demographic info one at a time
+        //bc we are using a for Each. 
         Object.entries(result).forEach((key)=>{
             demographicInfo.append("h5").text(key[0].toUpperCase() + ": " + key[1] + "\n");
         });
@@ -90,24 +96,25 @@ function getInfo(id){
     });
 }
 
+//tell app what to do when the option on the dropdown is changed
 function optionChanged(id){
-    getPlot(id);
-    getInfo(id);
+    plot(id);
+    demInfo(id);
 }
 
 function init(){
     var dropdown = d3.select("#selDataset");
-    //re-read
+    //re-read json AGAIN
     d3.json("../../samples.json").then((data)=>{
         console.log(data)
-        //get the id 
+        //add the possible id options to the dropdown menu
         data.names.forEach(function(name){
             dropdown.append("option").text(name).property("value");
         });
 
         //call fxns 
-        getPlot(data.names[0]);
-        getInfo(data.names[0]);
+        plot(data.names[0]);
+        demInfo(data.names[0]);
     });
 }
 
@@ -115,6 +122,4 @@ init();
 
 
 
-//notes on json structure
-//can use dot notation to get to different pieces and potentially save them as variables
 
