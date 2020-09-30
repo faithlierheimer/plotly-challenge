@@ -1,11 +1,15 @@
-//read in samples.json
-function getPlot(id){
+//Build plot() function to construct new bar/bubble plots at each new sample.
+function plot(id){
+    //read in JSON--have to do everything within this d3.json(). 
     d3.json("../../samples.json").then((data)=>{
+        //.map() returns an array of values from sections of the json
+        //calls arrow function for each array element-grabbing the first
+        //array element for each sample. 
         var otu_labels = data.samples.map(d => d.otu_labels[0]);
         var otu_ids = data.samples.map(d => d.otu_ids[0]);
-       
-        var wfreq = data.metadata.map(d => d.wfreq);
-        //sample values filtered by id
+        //sample values filtered by id--make a new array, contains
+        //only elements that match the samples.id part of the json,
+        //changes them to a string.
         var samples =data.samples.filter(s => s.id.toString() === id)[0];
 
         console.log(samples);
@@ -25,27 +29,89 @@ function getPlot(id){
             x: sample_values,
             y: top_OTU,
             text: hover,
-            width: 25
+            width: 25,
+            orientation: "h"
         };
+
         var layout = {
             title: `OTU Frequency`,
             width: 500,
             height: 500
     
         };
+
         var data = [trace1];
+        //bar chart setup
         Plotly.newPlot("bar", data, layout);
+
+        //set up bubble chart
+        var trace1 = {
+            x: samples.otu_ids,
+            y: samples.sample_values,
+            mode: "markers",
+            marker: {
+                size: samples.sample_values,
+                color: samples.otu_ids
+            },
+            text: samples.otu_labels
+        };
+
+        //set up layout for bubble plot 
+        var layout_b = {
+            xaxis: {title: "OTU ID"},
+            height: 500, 
+            width: 1000
+        };
+
+        var data1 = [trace1];
+
+        Plotly.newPlot("bubble", data1, layout_b);
     });
 };
 
-getPlot('940');
-function dropdown(){
-    var dropdownMenu = d3.select("#selDataset");
-    var dataset = dropdownMenu.property("value");
+getPlot('1545');
+//info fxn to repopulate demographic panel each time dropdown is. 
+function getInfo(id){
+    //re-read json
+    d3.json("../../samples.json").then((data)=> {
+        var metadata = data.metadata;
+        console.log(metadata)
+        //filter down metadata by id 
+        var result = metadata.filter(meta => meta.id.toString() === id)[0];
+        //select demographic panel to put data in
+        var demographicInfo = d3.select('#sample-metadata');
+        //clear out data each time event changes
+        demographicInfo.html("");
+        //get data to populate table
+        Object.entries(result).forEach((key)=>{
+            demographicInfo.append("h5").text(key[0].toUpperCase() + ": " + key[1] + "\n");
+        });
 
+    });
 }
 
-d3.selectAll("#selDataset").on("change", updateData);
+function optionChanged(id){
+    getPlot(id);
+    getInfo(id);
+}
+
+function init(){
+    var dropdown = d3.select("#selDataset");
+    //re-read
+    d3.json("../../samples.json").then((data)=>{
+        console.log(data)
+        //get the id 
+        data.names.forEach(function(name){
+            dropdown.append("option").text(name).property("value");
+        });
+
+        //call fxns 
+        getPlot(data.names[0]);
+        getInfo(data.names[0]);
+    });
+}
+
+init();
 
 
 
