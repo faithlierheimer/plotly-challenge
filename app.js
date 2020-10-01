@@ -75,7 +75,7 @@ function plot(id){
 //info fxn to repopulate demographic panel each time dropdown is. 
 function demInfo(id){
     //re-read json
-    d3.json("../../samples.json").then((data)=> {
+    d3.json("samples.json").then((data)=> {
         //get just metadata, make it its own variable to work with. 
         var metadata = data.metadata;
         console.log(metadata)
@@ -105,7 +105,7 @@ function optionChanged(id){
 function init(){
     var dropdown = d3.select("#selDataset");
     //re-read json AGAIN
-    d3.json("../../samples.json").then((data)=>{
+    d3.json("samples.json").then((data)=>{
         console.log(data)
         //add the possible id options to the dropdown menu
         data.names.forEach(function(name){
